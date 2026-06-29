@@ -1,6 +1,39 @@
-import { Link, NavLink } from "react-router";
+import { useState } from "react";
+import { Link, NavLink, useNavigate } from "react-router";
+import { supabase } from "../../lib/supabase";
+import { useAuth } from "../../context/AuthContext";
 
 function AppShell({ children }) {
+    const navigate = useNavigate();
+    const { user } = useAuth();
+
+    const [isSigningOut, setIsSigningOut] = useState(false);
+
+    const displayName =
+        user?.user_metadata?.display_name ||
+        user?.user_metadata?.username ||
+        user?.email?.split("@")[0] ||
+        "Chess player";
+
+    const profileInitial = displayName.charAt(0).toUpperCase();
+
+    async function handleSignOut() {
+        setIsSigningOut(true);
+
+        try {
+            const { error } = await supabase.auth.signOut();
+
+            if (error) {
+                throw error;
+            }
+
+            navigate("/login", { replace: true });
+        } catch (error) {
+            console.error("Could not sign out:", error);
+            setIsSigningOut(false);
+        }
+    }
+
     return (
         <div className="dashboard-shell">
             <aside className="dashboard-sidebar">
@@ -32,38 +65,59 @@ function AppShell({ children }) {
                         Analyze Game
                     </NavLink>
 
-                    <span className="sidebar-link sidebar-link-disabled">
-            <span className="sidebar-icon">♟</span>
-            My Games
-            <small>Soon</small>
-          </span>
+                    <NavLink
+                        className={({ isActive }) =>
+                            `sidebar-link ${isActive ? "sidebar-link-active" : ""}`
+                        }
+                        to="/games"
+                    >
+                        <span className="sidebar-icon">♟</span>
+                        My Games
+                    </NavLink>
 
                     <span className="sidebar-link sidebar-link-disabled">
-            <span className="sidebar-icon">↗</span>
-            Insights
-            <small>Soon</small>
-          </span>
+                        <span className="sidebar-icon">↗</span>
+                        Insights
+                        <small>Soon</small>
+                    </span>
                 </nav>
 
                 <div className="sidebar-bottom">
                     <div className="sidebar-section-label">Account</div>
 
-                    <span className="sidebar-link sidebar-link-disabled">
-            <span className="sidebar-icon">⚙</span>
-            Settings
-            <small>Soon</small>
-          </span>
+                    <NavLink
+                        className={({ isActive }) =>
+                            `sidebar-link ${isActive ? "sidebar-link-active" : ""}`
+                        }
+                        to="/settings"
+                    >
+                        <span className="sidebar-icon">⚙</span>
+                        Settings
+                    </NavLink>
 
-                    <Link className="profile-preview" to="/dashboard">
-                        <span className="profile-avatar">M</span>
+                    <div className="profile-preview">
+                        <span className="profile-avatar">
+                            {profileInitial}
+                        </span>
 
                         <span className="profile-preview-info">
-              <strong>Martin</strong>
-              <small>Chess learner</small>
-            </span>
+                            <strong>{displayName}</strong>
+                            <small>{user?.email || "Signed in"}</small>
+                        </span>
 
                         <span className="profile-more">•••</span>
-                    </Link>
+                    </div>
+
+                    <button
+                        className="sidebar-logout-button"
+                        type="button"
+                        onClick={handleSignOut}
+                        disabled={isSigningOut}
+                    >
+                        <span>↪</span>
+
+                        {isSigningOut ? "Signing out..." : "Log out"}
+                    </button>
                 </div>
             </aside>
 
@@ -90,15 +144,25 @@ function AppShell({ children }) {
                     Analyze
                 </NavLink>
 
-                <span className="mobile-nav-link mobile-nav-disabled">
-          <span>♟</span>
-          Games
-        </span>
+                <NavLink
+                    className={({ isActive }) =>
+                        `mobile-nav-link ${isActive ? "mobile-nav-active" : ""}`
+                    }
+                    to="/games"
+                >
+                    <span>♟</span>
+                    Games
+                </NavLink>
 
-                <span className="mobile-nav-link mobile-nav-disabled">
-          <span>◉</span>
-          Profile
-        </span>
+                <button
+                    className="mobile-nav-link mobile-logout-button"
+                    type="button"
+                    onClick={handleSignOut}
+                    disabled={isSigningOut}
+                >
+                    <span>↪</span>
+                    Logout
+                </button>
             </nav>
         </div>
     );

@@ -1,8 +1,10 @@
-import { useMemo, useState } from "react";
-import { useLocation, useNavigate } from "react-router";
+import { useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
 import AppShell from "../components/layout/AppShell";
+import { supabase } from "../lib/supabase";
+import { API_BASE_URL } from "../lib/api";
 
 const DEMO_PGN = `[Event "ChessVision Demo Game"]
 [Site "ChessVision"]
@@ -498,9 +500,80 @@ function createArrowFromUci(uciMove, color = "rgba(74, 222, 128, 0.88)") {
 function ReviewGamePage() {
     const location = useLocation();
     const navigate = useNavigate();
+    const { gameId } = useParams();
+
+    const [savedReview, setSavedReview] = useState(null);
+    const [isSavedReviewLoading, setIsSavedReviewLoading] = useState(
+        Boolean(gameId),
+    );
+    const [savedReviewError, setSavedReviewError] = useState("");
+
+    useEffect(() => {
+        if (!gameId) {
+            setSavedReview(null);
+            setSavedReviewError("");
+            setIsSavedReviewLoading(false);
+            return;
+        }
+
+        const controller = new AbortController();
+
+        async function loadSavedReview() {
+            setIsSavedReviewLoading(true);
+            setSavedReviewError("");
+
+            try {
+                const {
+                    data: { session },
+                    error: sessionError,
+                } = await supabase.auth.getSession();
+
+                if (sessionError || !session?.access_token) {
+                    throw new Error(
+                        "Your login session has expired. Please log in again.",
+                    );
+                }
+
+                const response = await fetch(
+                    `${API_BASE_URL}/api/games/${gameId}/review`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${session.access_token}`,
+                        },
+                        signal: controller.signal,
+                    },
+                );
+
+                const data = await response.json().catch(() => null);
+
+                if (!response.ok) {
+                    throw new Error(
+                        data?.message ||
+                        data?.detail ||
+                        "Could not load this saved analysis.",
+                    );
+                }
+
+                setSavedReview(data);
+            } catch (error) {
+                if (error.name !== "AbortError") {
+                    setSavedReviewError(
+                        error.message ||
+                        "Could not load this saved analysis.",
+                    );
+                }
+            } finally {
+                setIsSavedReviewLoading(false);
+            }
+        }
+
+        loadSavedReview();
+
+        return () => controller.abort();
+    }, [gameId]);
 
     const gameData = useMemo(() => {
-        const receivedPgn = location.state?.pgn?.trim();
+        const receivedPgn = savedReview?.pgn?.trim() || location.state?.pgn?.trim();
         const requestedPgn = receivedPgn || DEMO_PGN;
 
         try {
@@ -519,7 +592,7 @@ function ReviewGamePage() {
                     "The imported PGN could not be read, so ChessVision loaded a demo game instead.",
             };
         }
-    }, [location.state?.pgn]);
+    }, [savedReview?.pgn, location.state?.pgn]);
 
     const [showBestMoveArrow, setShowBestMoveArrow] = useState(true);
 
@@ -528,7 +601,10 @@ function ReviewGamePage() {
 
     const { moves, pgn, usingDemoGame, parseError } = gameData;
 
-    const fullGameAnalysis = location.state?.fullGameAnalysis || null;
+    const fullGameAnalysis =
+        savedReview?.fullGameAnalysis ||
+        location.state?.fullGameAnalysis ||
+        null;
 
     const whiteSummary = fullGameAnalysis?.whiteSummary || null;
     const blackSummary = fullGameAnalysis?.blackSummary || null;
@@ -594,8 +670,10 @@ function ReviewGamePage() {
         deep: 20,
     };
 
-    const selectedAnalysisMode = location.state?.analysisMode || "standard";
-    const requestedDepth = analysisDepths[selectedAnalysisMode] || 16;
+    const selectedAnalysisMode =
+        fullGameAnalysis?.mode ||
+        location.state?.analysisMode ||
+        "standard";    const requestedDepth = analysisDepths[selectedAnalysisMode] || 16;
 
     for (let index = 0; index < moves.length; index += 2) {
         movePairs.push({
@@ -785,7 +863,7 @@ function ReviewGamePage() {
 
         try {
             const response = await fetch(
-                "http://localhost:8080/api/engine/analyze-position",
+                `${API_BASE_URL}/api/engine/analyze-position`,
                 {
                     method: "POST",
                     headers: {
@@ -817,6 +895,40 @@ function ReviewGamePage() {
         }
     }
 
+    if (gameId && isSavedReviewLoading) {
+        return (
+            <AppShell>
+                <section className="review-page">
+                    <div className="review-error-notice">
+                        <span>⌛</span>
+                        Loading saved analysis...
+                    </div>
+                </section>
+            </AppShell>
+        );
+    }
+
+    if (gameId && savedReviewError) {
+        return (
+            <AppShell>
+                <section className="review-page">
+                    <button
+                        className="review-back-button"
+                        type="button"
+                        onClick={() => navigate("/dashboard")}
+                    >
+                        ← Back to dashboard
+                    </button>
+
+                    <div className="review-error-notice">
+                        <span>!</span>
+                        {savedReviewError}
+                    </div>
+                </section>
+            </AppShell>
+        );
+    }
+
     return (
         <AppShell>
             <section className="review-page">
@@ -825,9 +937,9 @@ function ReviewGamePage() {
                         <button
                             className="review-back-button"
                             type="button"
-                            onClick={() => navigate("/analyze")}
+                            onClick={() => navigate(gameId ? "/dashboard" : "/analyze")}
                         >
-                            ← Back to import
+                            {gameId ? "← Back to dashboard" : "← Back to import"}
                         </button>
 
                         <p className="dashboard-date">GAME REVIEW</p>

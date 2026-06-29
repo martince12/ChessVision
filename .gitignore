@@ -37,3 +37,5 @@ npm-debug.log*
 backend/**/stockfish/*.exe
 backend/**/stockfish/stockfish
 backend/**/stockfish/stockfish-*
+
+backend/**/.env.docker

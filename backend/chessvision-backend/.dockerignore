@@ -1,0 +1,7 @@
+target/
+stockfish/
+.idea/
+*.iml
+.git/
+.env
+.env.docker

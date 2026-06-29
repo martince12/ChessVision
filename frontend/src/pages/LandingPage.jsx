@@ -55,7 +55,7 @@ function LandingPage() {
                 <section className="hero-section">
                     <div className="hero-content">
                         <p className="eyebrow">
-                            <span className="status-dot" />
+                            <span className="status-dot"/>
                             Smarter chess analysis
                         </p>
 
@@ -94,8 +94,8 @@ function LandingPage() {
                     </div>
 
                     <div className="hero-visual">
-                        <div className="glow glow-one" />
-                        <div className="glow glow-two" />
+                        <div className="glow glow-one"/>
+                        <div className="glow glow-two"/>
 
                         <div className="analysis-card floating-card top-card">
                             <p>Engine evaluation</p>
@@ -206,6 +206,200 @@ function LandingPage() {
                         </article>
                     </div>
                 </section>
+                <section className="how-it-works-section" id="how-it-works">
+                    <div className="section-heading">
+                        <p className="eyebrow">Simple workflow</p>
+                        <h2>From game to lesson in three steps.</h2>
+                        <p>
+                            ChessVision keeps the analysis process simple: bring your
+                            game, let Stockfish inspect it, then revisit the moments
+                            that matter most.
+                        </p>
+                    </div>
+
+                    <div className="how-it-works-grid">
+                        <article className="workflow-step-card">
+                            <span className="workflow-step-number">01</span>
+
+                            <div className="workflow-step-icon">⌕</div>
+
+                            <h3>Import your game</h3>
+
+                            <p>
+                                Paste a PGN, upload a PGN file, or import a public
+                                game from Lichess or Chess.com.
+                            </p>
+
+                            <span className="workflow-step-label">
+                                PGN · File · Links
+                            </span>
+                        </article>
+
+                        <article className="workflow-step-card workflow-step-featured">
+                            <span className="workflow-step-number">02</span>
+
+                            <div className="workflow-step-icon">♞</div>
+
+                            <h3>Run Stockfish analysis</h3>
+
+                            <p>
+                                Choose Quick, Standard, or Deep analysis and let
+                                ChessVision evaluate every move in your game.
+                            </p>
+
+                            <span className="workflow-step-label">
+                                Best moves · CPL · Accuracy
+                            </span>
+                        </article>
+
+                        <article className="workflow-step-card">
+                            <span className="workflow-step-number">03</span>
+
+                            <div className="workflow-step-icon">↗</div>
+
+                            <h3>Review and improve</h3>
+
+                            <p>
+                                Replay the game, see recommended moves, inspect
+                                mistakes, and return to any saved analysis later.
+                            </p>
+
+                            <span className="workflow-step-label">
+                                Review · History · Progress
+                            </span>
+                        </article>
+                    </div>
+
+                    <div className="workflow-cta">
+                        <div>
+                            <strong>Ready to review your next game?</strong>
+                            <span>
+                                Your saved analyses appear in Dashboard and My Games.
+                            </span>
+                        </div>
+
+                        <Link className="primary-button small-button" to="/analyze">
+                            Analyze a game
+                        </Link>
+                    </div>
+                </section>
+
+                <section className="landing-insights-section" id="insights">
+                    <div className="landing-insights-copy">
+                        <p className="eyebrow">Personal improvement</p>
+
+                        <h2>See patterns, not only moves.</h2>
+
+                        <p>
+                            Every saved analysis contributes to your personal
+                            dashboard. Follow accuracy over time, see where
+                            blunders happen, and identify the phase of the game
+                            that needs more attention.
+                        </p>
+
+                        <div className="landing-insight-list">
+                            <div>
+                                <span className="landing-insight-check">✓</span>
+
+                                <p>
+                                    <strong>Accuracy trend</strong>
+                                    Compare your recent games and follow your
+                                    engine-based accuracy over time.
+                                </p>
+                            </div>
+
+                            <div>
+                                <span className="landing-insight-check">✓</span>
+
+                                <p>
+                                    <strong>Focus area detection</strong>
+                                    Find whether opening, middlegame, or endgame
+                                    decisions cost you the most value.
+                                </p>
+                            </div>
+
+                            <div>
+                                <span className="landing-insight-check">✓</span>
+
+                                <p>
+                                    <strong>Saved game library</strong>
+                                    Search, filter, and reopen every completed
+                                    analysis whenever you need it.
+                                </p>
+                            </div>
+                        </div>
+
+                        <Link className="secondary-button" to="/games">
+                            Explore My Games
+                        </Link>
+                    </div>
+
+                    <div className="landing-insights-preview">
+                        <div className="insights-preview-top">
+                            <div>
+                                <span>Personal dashboard</span>
+                                <strong>Recent performance</strong>
+                            </div>
+
+                            <span className="insights-preview-live">
+                                <i/>
+                                LIVE DATA
+                            </span>
+                        </div>
+
+                        <div className="insights-preview-stats">
+                            <article>
+                                <span>Average accuracy</span>
+                                <strong>78.6%</strong>
+                                <small>Across saved analyses</small>
+                            </article>
+
+                            <article>
+                                <span>Focus area</span>
+                                <strong>Middlegame</strong>
+                                <small>Candidate move calculation</small>
+                            </article>
+                        </div>
+
+                        <div className="insights-preview-chart">
+                            <div className="insights-chart-heading">
+                                <span>Accuracy over time</span>
+                                <strong>Last 8 games</strong>
+                            </div>
+
+                            <div className="insights-chart-bars">
+                                {[48, 59, 54, 68, 65, 79, 74, 86].map(
+                                    (height, index) => (
+                                        <span
+                                            key={index}
+                                            className={
+                                                index === 7
+                                                    ? "insights-chart-bar insights-chart-bar-latest"
+                                                    : "insights-chart-bar"
+                                            }
+                                            style={{height: `${height}%`}}
+                                        />
+                                    ),
+                                )}
+                            </div>
+
+                            <div className="insights-chart-labels">
+                                <span>First analysis</span>
+                                <span>Latest game</span>
+                            </div>
+                        </div>
+
+                        <div className="insights-preview-footer">
+                            <span className="insights-preview-arrow">↗</span>
+
+                            <p>
+                                <strong>Progress comes from review.</strong>
+                                Your next analysis can reveal the next improvement.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
             </main>
         </div>
     );

@@ -1,14 +1,45 @@
-import { Link, useNavigate } from "react-router";
+import { useState } from "react";
+import { Link, useNavigate,useLocation } from "react-router";
 import AuthLayout from "../components/auth/AuthLayout";
+import { supabase } from "../lib/supabase";
 
 function LoginPage() {
     const navigate = useNavigate();
+    const location = useLocation();
 
-    function handleSubmit(event) {
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+
+    const [errorMessage, setErrorMessage] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    async function handleSubmit(event) {
         event.preventDefault();
 
-        // Privremeno dodeka ne go povrzeme Supabase Auth.
-        navigate("/dashboard");
+        setErrorMessage("");
+        setIsSubmitting(true);
+
+        try {
+            const { error } = await supabase.auth.signInWithPassword({
+                email: email.trim().toLowerCase(),
+                password,
+            });
+
+            if (error) {
+                setErrorMessage(error.message);
+                return;
+            }
+
+            navigate(location.state?.from || "/dashboard", {
+                replace: true,
+            });
+        } catch {
+            setErrorMessage(
+                "Something went wrong while logging in. Please try again.",
+            );
+        } finally {
+            setIsSubmitting(false);
+        }
     }
 
     return (
@@ -26,32 +57,58 @@ function LoginPage() {
                         type="email"
                         name="email"
                         placeholder="you@example.com"
+                        value={email}
+                        onChange={(event) => setEmail(event.target.value)}
+                        autoComplete="email"
                         required
                     />
                 </label>
 
                 <label>
-          <span className="label-row">
-            Password
-            <a href="#forgot-password">Forgot password?</a>
-          </span>
+                    <span className="label-row">
+                        Password
+                        <a href="#forgot-password">Forgot password?</a>
+                    </span>
 
                     <input
                         type="password"
                         name="password"
                         placeholder="Enter your password"
+                        value={password}
+                        onChange={(event) => setPassword(event.target.value)}
+                        autoComplete="current-password"
                         required
                     />
                 </label>
 
                 <label className="remember-row">
-                    <input type="checkbox" />
-                    <span>Remember me for 30 days</span>
+                    <input type="checkbox" defaultChecked />
+                    <span>Keep me signed in on this device</span>
                 </label>
 
-                <button className="auth-submit-button" type="submit">
-                    Log in to ChessVision
-                    <span>→</span>
+                {errorMessage && (
+                    <div className="auth-message auth-message-error">
+                        <span>!</span>
+                        {errorMessage}
+                    </div>
+                )}
+
+                <button
+                    className="auth-submit-button"
+                    type="submit"
+                    disabled={isSubmitting}
+                >
+                    {isSubmitting ? (
+                        <>
+                            <span className="button-spinner" />
+                            Logging in...
+                        </>
+                    ) : (
+                        <>
+                            Log in to ChessVision
+                            <span>→</span>
+                        </>
+                    )}
                 </button>
             </form>
 
@@ -61,9 +118,14 @@ function LoginPage() {
                 <span />
             </div>
 
-            <button className="google-button" type="button">
+            <button
+                className="google-button google-button-disabled"
+                type="button"
+                disabled
+                title="Google sign-in will be configured later."
+            >
                 <span className="google-icon">G</span>
-                Continue with Google
+                Google sign-in coming soon
             </button>
 
             <p className="auth-switch-text">

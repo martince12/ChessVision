@@ -15,6 +15,16 @@ public record FullGameAnalysisRequest(
                 flags = Pattern.Flag.CASE_INSENSITIVE,
                 message = "Mode must be quick, standard, or deep."
         )
-        String mode
+        String mode,
+
+        @Pattern(
+                regexp = "pasted_pgn|pgn_file|lichess|chesscom|manual",
+                flags = Pattern.Flag.CASE_INSENSITIVE,
+                message = "Invalid game source."
+        )
+        String source,
+
+        @Size(max = 2_000, message = "Source URL is too long.")
+        String sourceUrl
 ) {
 }

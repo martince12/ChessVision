@@ -1,6 +1,8 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import AppShell from "../components/layout/AppShell";
+import { supabase } from "../lib/supabase";
+import { API_BASE_URL } from "../lib/api";
 
 const importMethods = [
     {
@@ -149,7 +151,7 @@ function AnalyzeGamePage() {
 
         try {
             const response = await fetch(
-                "http://localhost:8080/api/games/validate-pgn",
+                `${API_BASE_URL}/api/games/validate-pgn`,
                 {
                     method: "POST",
                     headers: {
@@ -243,7 +245,7 @@ function AnalyzeGamePage() {
 
         try {
             const response = await fetch(
-                `http://localhost:8080${endpoint}`,
+                `${API_BASE_URL}${endpoint}`,
                 {
                     method: "POST",
                     headers: {
@@ -338,25 +340,56 @@ function AnalyzeGamePage() {
         setErrorMessage("");
 
         try {
+            const {
+                data: { session },
+                error: sessionError,
+            } = await supabase.auth.getSession();
+
+            if (sessionError || !session?.access_token) {
+                setAnalysisError(
+                    "Your login session has expired. Please log in again.",
+                );
+                return;
+            }
+
             const response = await fetch(
-                "http://localhost:8080/api/analysis/full-game",
+                `${API_BASE_URL}/api/analysis/full-game`,
                 {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
+                        Authorization: `Bearer ${session.access_token}`,
                     },
                     body: JSON.stringify({
                         pgn: pgnText.trim(),
                         mode: selectedMode,
+
+                        source:
+                            selectedMethod === "file"
+                                ? "pgn_file"
+                                : selectedMethod === "lichess"
+                                    ? "lichess"
+                                    : selectedMethod === "chesscom"
+                                        ? "chesscom"
+                                        : selectedMethod === "manual"
+                                            ? "manual"
+                                            : "pasted_pgn",
+
+                        sourceUrl:
+                            selectedMethod === "lichess" ||
+                            selectedMethod === "chesscom"
+                                ? gameLink.trim()
+                                : null,
                     }),
                 },
             );
 
-            const data = await response.json();
+            const data = await response.json().catch(() => ({}));
 
             if (!response.ok || !data.available) {
                 setAnalysisError(
-                    data.message || "ChessVision could not complete the game analysis.",
+                    data.message ||
+                    "ChessVision could not complete the game analysis.",
                 );
                 return;
             }

@@ -1,54 +1,103 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router";
+import { Link,useNavigate  } from "react-router";
 import AppShell from "../components/layout/AppShell";
+import { supabase } from "../lib/supabase";
+import { useAuth } from "../context/AuthContext";
+import { API_BASE_URL } from "../lib/api";
 
-const recentGames = [
-    {
-        id: 1,
-        opponent: "TacticalWolf",
-        color: "Black",
-        result: "Loss",
-        accuracy: "71.4%",
-        blunders: 4,
-        date: "Today",
-    },
-    {
-        id: 2,
-        opponent: "KnightRider",
-        color: "White",
-        result: "Win",
-        accuracy: "86.2%",
-        blunders: 1,
-        date: "Yesterday",
-    },
-    {
-        id: 3,
-        opponent: "QuietStorm",
-        color: "Black",
-        result: "Draw",
-        accuracy: "79.8%",
-        blunders: 2,
-        date: "Jun 26",
-    },
-];
 
-const accuracyBars = [48, 62, 55, 74, 68, 86, 77, 90, 83, 91, 87, 94];
+function formatAccuracy(value) {
+    if (typeof value !== "number") {
+        return "—";
+    }
+
+    return `${value.toFixed(1)}%`;
+}
+
+function formatBlunders(value) {
+    if (typeof value !== "number") {
+        return "—";
+    }
+
+    return value.toFixed(1);
+}
+
+function formatDate(value) {
+    if (!value) {
+        return "Unknown date";
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return "Unknown date";
+    }
+
+    return new Intl.DateTimeFormat("en-US", {
+        month: "short",
+        day: "numeric",
+        year:
+            date.getFullYear() !== new Date().getFullYear()
+                ? "numeric"
+                : undefined,
+    }).format(date);
+}
+
+function getDashboardDate() {
+    return new Intl.DateTimeFormat("en-US", {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+    })
+        .format(new Date())
+        .toUpperCase();
+}
 
 function DashboardPage() {
+    const { user } = useAuth();
+    const navigate = useNavigate();
+
     const [backendStatus, setBackendStatus] = useState(
         "Checking backend connection...",
     );
-
     const [backendOnline, setBackendOnline] = useState(false);
+
+    const [dashboard, setDashboard] = useState(null);
+    const [isDashboardLoading, setIsDashboardLoading] = useState(true);
+    const [dashboardError, setDashboardError] = useState("");
+
+    const displayName =
+        user?.user_metadata?.display_name ||
+        user?.user_metadata?.username ||
+        user?.email?.split("@")[0] ||
+        "Chess player";
+
+    const recentGames = dashboard?.recentGames ?? [];
+    const accuracyTrend = dashboard?.accuracyTrend ?? [];
+
+    const chartBars =
+        accuracyTrend.length > 0
+            ? accuracyTrend
+            : Array.from({ length: 12 }, () => 0);
+
+    const latestAccuracy =
+        accuracyTrend.length > 0
+            ? accuracyTrend[accuracyTrend.length - 1]
+            : null;
+
+    const focusArea = dashboard?.focusArea;
 
     useEffect(() => {
         const controller = new AbortController();
 
         async function checkBackend() {
             try {
-                const response = await fetch("http://localhost:8080/api/health", {
-                    signal: controller.signal,
-                });
+                const response = await fetch(
+                    `${API_BASE_URL}/api/health`,
+                    {
+                        signal: controller.signal,
+                    },
+                );
 
                 if (!response.ok) {
                     throw new Error("Backend did not respond correctly.");
@@ -69,15 +118,73 @@ function DashboardPage() {
         return () => controller.abort();
     }, []);
 
+    useEffect(() => {
+        const controller = new AbortController();
+
+        async function loadDashboard() {
+            setIsDashboardLoading(true);
+            setDashboardError("");
+
+            try {
+                const {
+                    data: { session },
+                    error: sessionError,
+                } = await supabase.auth.getSession();
+
+                if (sessionError || !session?.access_token) {
+                    throw new Error(
+                        "Your login session has expired. Please log in again.",
+                    );
+                }
+
+                const response = await fetch(
+                    `${API_BASE_URL}/api/dashboard`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${session.access_token}`,
+                        },
+                        signal: controller.signal,
+                    },
+                );
+
+                const data = await response.json().catch(() => null);
+
+                if (!response.ok) {
+                    throw new Error(
+                        data?.message ||
+                        "ChessVision could not load your dashboard.",
+                    );
+                }
+
+                setDashboard(data);
+            } catch (error) {
+                if (error.name !== "AbortError") {
+                    setDashboardError(
+                        error.message ||
+                        "Could not load your saved analyses.",
+                    );
+                }
+            } finally {
+                setIsDashboardLoading(false);
+            }
+        }
+
+        loadDashboard();
+
+        return () => controller.abort();
+    }, []);
+
     return (
         <AppShell>
             <section className="dashboard-content">
                 <header className="dashboard-header">
                     <div>
-                        <p className="dashboard-date">MONDAY, JUNE 29</p>
+                        <p className="dashboard-date">{getDashboardDate()}</p>
+
                         <h1>
-                            Welcome back, <span>Martin.</span>
+                            Welcome back, <span>{displayName}.</span>
                         </h1>
+
                         <p>
                             Your next game could teach you something important. Ready to
                             analyze?
@@ -87,10 +194,12 @@ function DashboardPage() {
                     <div className="dashboard-header-actions">
                         <div
                             className={`backend-connection-status ${
-                                backendOnline ? "backend-online" : "backend-offline"
+                                backendOnline
+                                    ? "backend-online"
+                                    : "backend-offline"
                             }`}
                         >
-                            <span/>
+                            <span />
                             {backendStatus}
                         </div>
 
@@ -101,34 +210,54 @@ function DashboardPage() {
                     </div>
                 </header>
 
+                {dashboardError && (
+                    <p className="auth-message auth-message-error">
+                        {dashboardError}
+                    </p>
+                )}
+
                 <section className="dashboard-overview-grid">
                     <article className="overview-card overview-card-highlight">
                         <div className="overview-card-top">
                             <span className="overview-icon">♞</span>
-                            <span className="overview-chip">This month</span>
+                            <span className="overview-chip">All time</span>
                         </div>
 
                         <p className="overview-label">Games analyzed</p>
-                        <strong className="overview-value">12</strong>
+
+                        <strong className="overview-value">
+                            {isDashboardLoading
+                                ? "…"
+                                : dashboard?.totalGames ?? 0}
+                        </strong>
 
                         <div className="overview-footer">
-                            <span className="positive-change">↑ 4</span>
-                            <span>compared to last month</span>
+                            <span>
+                                {dashboard?.totalGames === 1
+                                    ? "1 saved analysis"
+                                    : `${dashboard?.totalGames ?? 0} saved analyses`}
+                            </span>
                         </div>
                     </article>
 
                     <article className="overview-card">
                         <div className="overview-card-top">
                             <span className="overview-icon">◎</span>
-                            <span className="overview-card-status">Improving</span>
+                            <span className="overview-card-status">
+                                Your average
+                            </span>
                         </div>
 
                         <p className="overview-label">Average accuracy</p>
-                        <strong className="overview-value">78.6%</strong>
+
+                        <strong className="overview-value">
+                            {isDashboardLoading
+                                ? "…"
+                                : formatAccuracy(dashboard?.averageAccuracy)}
+                        </strong>
 
                         <div className="overview-footer">
-                            <span className="positive-change">↑ 3.8%</span>
-                            <span>over your previous 10 games</span>
+                            <span>Across all saved analyses</span>
                         </div>
                     </article>
 
@@ -139,27 +268,45 @@ function DashboardPage() {
                         </div>
 
                         <p className="overview-label">Average blunders</p>
-                        <strong className="overview-value">2.4</strong>
+
+                        <strong className="overview-value">
+                            {isDashboardLoading
+                                ? "…"
+                                : formatBlunders(dashboard?.averageBlunders)}
+                        </strong>
 
                         <div className="overview-footer">
-                            <span className="positive-change">↓ 0.8</span>
-                            <span>fewer errors per game</span>
+                            <span>Per saved game</span>
                         </div>
                     </article>
 
                     <article className="overview-card">
                         <div className="overview-card-top">
                             <span className="overview-icon">↗</span>
-                            <span className="overview-card-status">One game estimate</span>
+                            <span className="overview-card-status">
+                                Estimate
+                            </span>
                         </div>
 
                         <p className="overview-label">Performance range</p>
+
                         <strong className="overview-value overview-value-rating">
-                            1450<span>–</span>1650
+                            {isDashboardLoading ? (
+                                "…"
+                            ) : dashboard?.performanceLower != null &&
+                            dashboard?.performanceUpper != null ? (
+                                <>
+                                    {dashboard.performanceLower}
+                                    <span>–</span>
+                                    {dashboard.performanceUpper}
+                                </>
+                            ) : (
+                                "—"
+                            )}
                         </strong>
 
                         <div className="overview-footer">
-                            <span>Based on your latest analysis</span>
+                            <span>Based on saved analyses</span>
                         </div>
                     </article>
                 </section>
@@ -173,35 +320,51 @@ function DashboardPage() {
                             </div>
 
                             <button className="panel-select-button" type="button">
-                                Last 12 games <span>⌄</span>
+                                Last {Math.min(chartBars.length, 12)} games{" "}
+                                <span>⌄</span>
                             </button>
                         </div>
 
                         <div className="chart-summary">
                             <div>
-                                <strong>78.6%</strong>
+                                <strong>
+                                    {formatAccuracy(dashboard?.averageAccuracy)}
+                                </strong>
                                 <span>Average accuracy</span>
                             </div>
 
                             <div className="chart-summary-badge">
-                                <span>↑</span>
-                                +8.4% trend
+                                <span>↗</span>
+                                {latestAccuracy == null
+                                    ? "No games yet"
+                                    : `${formatAccuracy(latestAccuracy)} latest`}
                             </div>
                         </div>
 
                         <div className="accuracy-chart" aria-label="Accuracy chart">
-                            {accuracyBars.map((height, index) => (
-                                <div className="chart-bar-wrapper" key={index}>
+                            {chartBars.map((accuracy, index) => {
+                                const height =
+                                    accuracy > 0
+                                        ? Math.max(4, Math.min(100, accuracy))
+                                        : 0;
+
+                                return (
                                     <div
-                                        className={`chart-bar ${
-                                            index === accuracyBars.length - 1
-                                                ? "chart-bar-latest"
-                                                : ""
-                                        }`}
-                                        style={{ height: `${height}%` }}
-                                    />
-                                </div>
-                            ))}
+                                        className="chart-bar-wrapper"
+                                        key={`${accuracy}-${index}`}
+                                    >
+                                        <div
+                                            className={`chart-bar ${
+                                                index === chartBars.length - 1 &&
+                                                accuracy > 0
+                                                    ? "chart-bar-latest"
+                                                    : ""
+                                            }`}
+                                            style={{ height: `${height}%` }}
+                                        />
+                                    </div>
+                                );
+                            })}
                         </div>
 
                         <div className="chart-labels">
@@ -217,19 +380,29 @@ function DashboardPage() {
                                 <h2>Your focus area</h2>
                             </div>
 
-                            <span className="insight-badge">Middlegame</span>
+                            <span className="insight-badge">
+                                {focusArea?.phase ?? "No data"}
+                            </span>
                         </div>
 
                         <div className="improvement-score">
                             <div className="score-ring">
-                                <span>68</span>
+                                <span>{focusArea?.score ?? 0}</span>
                             </div>
 
                             <div>
-                                <strong>Position conversion</strong>
+                                <strong>
+                                    {focusArea?.phase
+                                        ? `${focusArea.phase} decision making`
+                                        : "Analyze a game to begin"}
+                                </strong>
+
                                 <p>
-                                    You often reach playable positions but lose accuracy during
-                                    tactical middlegame moments.
+                                    {focusArea?.averageCentipawnLoss != null
+                                        ? `You lose an average of ${focusArea.averageCentipawnLoss.toFixed(
+                                            1,
+                                        )} centipawns per move during this phase.`
+                                        : "Your first completed analysis will reveal a personal focus area."}
                                 </p>
                             </div>
                         </div>
@@ -239,7 +412,7 @@ function DashboardPage() {
                                 <span className="improvement-marker marker-good" />
                                 <p>
                                     <strong>Strongest phase</strong>
-                                    Opening development
+                                    {focusArea?.strongestPhase ?? "No data yet"}
                                 </p>
                             </div>
 
@@ -247,7 +420,9 @@ function DashboardPage() {
                                 <span className="improvement-marker marker-warning" />
                                 <p>
                                     <strong>Practice next</strong>
-                                    Candidate move calculation
+                                    {focusArea?.phase
+                                        ? `${focusArea.phase} candidate moves`
+                                        : "Analyze your first game"}
                                 </p>
                             </div>
 
@@ -255,7 +430,8 @@ function DashboardPage() {
                                 <span className="improvement-marker marker-info" />
                                 <p>
                                     <strong>Suggested goal</strong>
-                                    Keep blunders below 2 per game
+                                    Keep blunders below{" "}
+                                    {focusArea?.suggestedBlunderGoal ?? 2} per game
                                 </p>
                             </div>
                         </div>
@@ -273,9 +449,9 @@ function DashboardPage() {
                             <h2>Recent games</h2>
                         </div>
 
-                        <button className="panel-text-button" type="button">
+                        <Link className="panel-text-button" to="/games">
                             View all games <span>→</span>
-                        </button>
+                        </Link>
                     </div>
 
                     <div className="recent-games-table-wrapper">
@@ -293,51 +469,75 @@ function DashboardPage() {
                             </thead>
 
                             <tbody>
-                            {recentGames.map((game) => (
-                                <tr key={game.id}>
-                                    <td>
-                                        <div className="opponent-cell">
-                        <span className="opponent-avatar">
-                          {game.opponent.charAt(0)}
-                        </span>
-                                            <strong>{game.opponent}</strong>
-                                        </div>
-                                    </td>
-
-                                    <td>
-                      <span
-                          className={`color-indicator ${
-                              game.color === "White"
-                                  ? "color-indicator-white"
-                                  : "color-indicator-black"
-                          }`}
-                      />
-                                        {game.color}
-                                    </td>
-
-                                    <td>
-                      <span
-                          className={`result-badge result-${game.result.toLowerCase()}`}
-                      >
-                        {game.result}
-                      </span>
-                                    </td>
-
-                                    <td className="accuracy-cell">{game.accuracy}</td>
-                                    <td>{game.blunders}</td>
-                                    <td className="date-cell">{game.date}</td>
-
-                                    <td>
-                                        <button
-                                            className="table-action-button"
-                                            type="button"
-                                            aria-label={`View ${game.opponent} game`}
-                                        >
-                                            →
-                                        </button>
+                            {isDashboardLoading ? (
+                                <tr>
+                                    <td colSpan="7">Loading your analyses…</td>
+                                </tr>
+                            ) : recentGames.length === 0 ? (
+                                <tr>
+                                    <td colSpan="7">
+                                        No saved analyses yet. Analyze your first
+                                        game to see it here.
                                     </td>
                                 </tr>
-                            ))}
+                            ) : (
+                                recentGames.map((game) => (
+                                    <tr key={game.gameId}>
+                                        <td>
+                                            <div className="opponent-cell">
+                                                    <span className="opponent-avatar">
+                                                        {game.opponent
+                                                            ?.charAt(0)
+                                                            ?.toUpperCase() ?? "?"}
+                                                    </span>
+
+                                                <strong>{game.opponent}</strong>
+                                            </div>
+                                        </td>
+
+                                        <td>
+                                            {game.playedAs === "White" && (
+                                                <span className="color-indicator color-indicator-white" />
+                                            )}
+
+                                            {game.playedAs === "Black" && (
+                                                <span className="color-indicator color-indicator-black" />
+                                            )}
+
+                                            {game.playedAs}
+                                        </td>
+
+                                        <td>
+                                                <span
+                                                    className={`result-badge result-${game.result?.toLowerCase()}`}
+                                                >
+                                                    {game.result}
+                                                </span>
+                                        </td>
+
+                                        <td className="accuracy-cell">
+                                            {formatAccuracy(game.accuracy)}
+                                        </td>
+
+                                        <td>{game.blunders ?? 0}</td>
+
+                                        <td className="date-cell">
+                                            {formatDate(game.createdAt)}
+                                        </td>
+
+                                        <td>
+                                            <button
+                                                className="table-action-button"
+                                                type="button"
+                                                onClick={() => navigate(`/review/${game.gameId}`)}
+                                                aria-label={`View ${game.opponent} game`}
+                                            >
+                                                →
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                             </tbody>
                         </table>
                     </div>
