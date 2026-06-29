@@ -127,7 +127,7 @@ function AccountSettingsPage() {
             }
 
             const response = await fetch(
-                "http://localhost:8080/api/account/profile",
+                `${API_BASE_URL}/api/account/profile`,
                 {
                     method: "PUT",
                     headers: {
