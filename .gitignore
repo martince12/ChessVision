@@ -1,0 +1,39 @@
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Backend
+backend/target/
+backend/.mvn/wrapper/maven-wrapper.jar
+
+# Environment variables / secrets
+.env
+.env.*
+!.env.example
+backend/.env
+frontend/.env
+frontend/.env.*
+
+# Local Stockfish binaries
+backend/stockfish/*.exe
+backend/stockfish/stockfish
+backend/stockfish/stockfish-*
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Stockfish binaries anywhere inside backend
+backend/**/stockfish/*.exe
+backend/**/stockfish/stockfish
+backend/**/stockfish/stockfish-*
