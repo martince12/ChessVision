@@ -5421,7 +5421,676 @@ a {
     grid-column: auto;
   }
 }
+.hero-board-wrapper {
+  overflow: hidden;
+}
+
+.hero-live-board {
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: #d9e7da;
+}
+
+.hero-live-board > div {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.live-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.live-label i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 12px rgba(74, 222, 128, 0.9);
+  animation: hero-live-pulse 1.5s ease-in-out infinite;
+}
+
+.hero-board-controls {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 42px;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 15px;
+  border-top: 1px solid rgba(154, 189, 164, 0.13);
+  background: rgba(6, 14, 8, 0.88);
+}
+
+.hero-board-nav-button {
+  display: grid;
+  width: 42px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid rgba(74, 222, 128, 0.22);
+  border-radius: 9px;
+  color: #bdf9ce;
+  background: rgba(74, 222, 128, 0.08);
+  cursor: pointer;
+  font-size: 1.12rem;
+  transition:
+          transform 150ms ease,
+          border-color 150ms ease,
+          background 150ms ease;
+}
+
+.hero-board-nav-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(74, 222, 128, 0.52);
+  background: rgba(74, 222, 128, 0.16);
+}
+
+.hero-board-nav-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+
+.hero-move-state {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  text-align: center;
+}
+
+.hero-move-state span {
+  overflow: hidden;
+  color: #edf9ef;
+  font-size: 0.84rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hero-move-state strong {
+  color: rgba(191, 224, 199, 0.52);
+  font-size: 0.67rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+@keyframes hero-live-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(0.86);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.16);
+  }
+}
+
+@media (max-width: 680px) {
+  .hero-board-controls {
+    padding: 10px;
+  }
+
+  .hero-board-nav-button {
+    width: 38px;
+    height: 36px;
+  }
+}
+
+.hero-visual .bottom-card {
+  translate: 0 -15px;
+}
+
+/* =========================================================
+   ChessVision Landing — 3D depth and motion system
+   Scoped only to the landing page through .landing-3d
+   ========================================================= */
+
+.landing-3d {
+  position: relative;
+  isolation: isolate;
+  overflow-x: hidden;
+}
+
+.landing-3d::before,
+.landing-3d::after {
+  position: fixed;
+  z-index: -1;
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+  pointer-events: none;
+  content: "";
+  filter: blur(20px);
+}
+
+.landing-3d::before {
+  top: 120px;
+  left: -260px;
+  background: radial-gradient(
+          circle,
+          rgba(74, 222, 128, 0.14),
+          rgba(74, 222, 128, 0.035) 42%,
+          transparent 70%
+  );
+  animation: landing-ambient-left 15s ease-in-out infinite alternate;
+}
+
+.landing-3d::after {
+  top: 470px;
+  right: -280px;
+  background: radial-gradient(
+          circle,
+          rgba(110, 231, 183, 0.11),
+          rgba(74, 222, 128, 0.025) 45%,
+          transparent 72%
+  );
+  animation: landing-ambient-right 18s ease-in-out infinite alternate;
+}
+
+.landing-3d .navbar {
+  animation: landing-reveal-down 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.landing-3d .hero-content {
+  animation: landing-reveal-left 760ms 110ms cubic-bezier(0.16, 1, 0.3, 1)
+  both;
+}
+
+.landing-3d .hero-visual {
+  transform-style: preserve-3d;
+  perspective: 1450px;
+  animation: landing-reveal-right 860ms 180ms cubic-bezier(0.16, 1, 0.3, 1)
+  both;
+}
+
+.landing-3d .hero-board-wrapper {
+  position: relative;
+  transform: perspective(1450px) rotateY(-4deg) rotateX(1.8deg);
+  transform-style: preserve-3d;
+  transition:
+          transform 450ms cubic-bezier(0.16, 1, 0.3, 1),
+          box-shadow 450ms ease;
+  box-shadow:
+          0 35px 70px rgba(0, 0, 0, 0.38),
+          0 0 0 1px rgba(74, 222, 128, 0.08),
+          0 0 70px rgba(74, 222, 128, 0.08);
+}
+
+.landing-3d .hero-board-wrapper::before {
+  position: absolute;
+  inset: 1px;
+  z-index: 2;
+  border-radius: inherit;
+  pointer-events: none;
+  content: "";
+  background: linear-gradient(
+          130deg,
+          rgba(255, 255, 255, 0.09),
+          transparent 24%,
+          transparent 70%,
+          rgba(74, 222, 128, 0.05)
+  );
+}
+
+.landing-3d .hero-board-wrapper:hover {
+  transform: perspective(1450px) rotateY(-1.2deg) rotateX(0.6deg)
+  translateY(-7px);
+  box-shadow:
+          0 46px 88px rgba(0, 0, 0, 0.45),
+          0 0 0 1px rgba(74, 222, 128, 0.17),
+          0 0 90px rgba(74, 222, 128, 0.14);
+}
+
+.landing-3d .hero-live-board {
+  position: relative;
+  z-index: 1;
+}
+
+.landing-3d .top-card {
+  animation:
+          landing-card-reveal 760ms 520ms cubic-bezier(0.16, 1, 0.3, 1) both,
+          landing-float-top 5.4s 1.2s ease-in-out infinite;
+}
+
+.landing-3d .bottom-card {
+  animation: landing-card-reveal 760ms 650ms cubic-bezier(0.16, 1, 0.3, 1)
+  both;
+}
+
+.landing-3d .analysis-card {
+  backdrop-filter: blur(14px);
+  box-shadow:
+          0 17px 42px rgba(0, 0, 0, 0.28),
+          inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.landing-3d .stats-section {
+  perspective: 1100px;
+}
+
+.landing-3d .stat-card {
+  transform: translateZ(0);
+  transition:
+          transform 260ms cubic-bezier(0.16, 1, 0.3, 1),
+          border-color 260ms ease,
+          box-shadow 260ms ease;
+  animation: landing-card-reveal 680ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.landing-3d .stat-card:nth-child(1) {
+  animation-delay: 160ms;
+}
+
+.landing-3d .stat-card:nth-child(2) {
+  animation-delay: 240ms;
+}
+
+.landing-3d .stat-card:nth-child(3) {
+  animation-delay: 320ms;
+}
+
+.landing-3d .stat-card:nth-child(4) {
+  animation-delay: 400ms;
+}
+
+.landing-3d .stat-card:hover {
+  z-index: 2;
+  border-color: rgba(74, 222, 128, 0.34);
+  transform: translateY(-7px) rotateX(2deg) rotateY(-2deg);
+  box-shadow:
+          0 22px 46px rgba(0, 0, 0, 0.25),
+          0 0 34px rgba(74, 222, 128, 0.08);
+}
+
+.landing-3d .features-section,
+.landing-3d .how-it-works-section,
+.landing-3d .landing-insights-section {
+  position: relative;
+}
+
+.landing-3d .feature-card,
+.landing-3d .workflow-step-card,
+.landing-3d .landing-insights-preview {
+  transform-style: preserve-3d;
+  transition:
+          transform 280ms cubic-bezier(0.16, 1, 0.3, 1),
+          border-color 280ms ease,
+          box-shadow 280ms ease;
+}
+
+.landing-3d .feature-card {
+  animation: landing-card-reveal 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.landing-3d .feature-card:nth-child(1) {
+  animation-delay: 80ms;
+}
+
+.landing-3d .feature-card:nth-child(2) {
+  animation-delay: 180ms;
+}
+
+.landing-3d .feature-card:nth-child(3) {
+  animation-delay: 280ms;
+}
+
+.landing-3d .feature-card:hover,
+.landing-3d .workflow-step-card:hover {
+  z-index: 2;
+  border-color: rgba(74, 222, 128, 0.36);
+  transform: translateY(-9px) rotateX(2deg) rotateY(-2deg);
+  box-shadow:
+          0 24px 50px rgba(0, 0, 0, 0.25),
+          0 0 35px rgba(74, 222, 128, 0.07);
+}
+
+.landing-3d .workflow-step-card {
+  animation: landing-card-reveal 720ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.landing-3d .workflow-step-card:nth-child(1) {
+  animation-delay: 100ms;
+}
+
+.landing-3d .workflow-step-card:nth-child(2) {
+  animation-delay: 210ms;
+}
+
+.landing-3d .workflow-step-card:nth-child(3) {
+  animation-delay: 320ms;
+}
+
+.landing-3d .workflow-step-featured {
+  box-shadow:
+          0 20px 55px rgba(0, 0, 0, 0.24),
+          0 0 42px rgba(74, 222, 128, 0.07);
+}
+
+.landing-3d .landing-insights-copy {
+  animation: landing-reveal-left 740ms 100ms cubic-bezier(0.16, 1, 0.3, 1)
+  both;
+}
+
+.landing-3d .landing-insights-preview {
+  animation: landing-reveal-right 820ms 180ms cubic-bezier(0.16, 1, 0.3, 1)
+  both;
+  box-shadow:
+          0 30px 65px rgba(0, 0, 0, 0.3),
+          0 0 60px rgba(74, 222, 128, 0.07);
+}
+
+.landing-3d .landing-insights-preview:hover {
+  border-color: rgba(74, 222, 128, 0.31);
+  transform: perspective(1200px) translateY(-8px) rotateX(1.6deg)
+  rotateY(-1.8deg);
+  box-shadow:
+          0 39px 76px rgba(0, 0, 0, 0.38),
+          0 0 72px rgba(74, 222, 128, 0.11);
+}
+
+.landing-3d .primary-button,
+.landing-3d .secondary-button,
+.landing-3d .login-button {
+  transition:
+          transform 180ms cubic-bezier(0.16, 1, 0.3, 1),
+          box-shadow 180ms ease,
+          border-color 180ms ease;
+}
+
+.landing-3d .primary-button:hover,
+.landing-3d .secondary-button:hover,
+.landing-3d .login-button:hover {
+  transform: translateY(-3px);
+}
+
+.landing-3d .primary-button:hover {
+  box-shadow:
+          0 13px 27px rgba(74, 222, 128, 0.2),
+          0 0 25px rgba(74, 222, 128, 0.12);
+}
+
+.landing-3d .primary-button:active,
+.landing-3d .secondary-button:active,
+.landing-3d .login-button:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.landing-3d .insights-chart-bar {
+  transform-origin: bottom;
+  animation: landing-chart-grow 740ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.landing-3d .insights-chart-bar:nth-child(1) {
+  animation-delay: 180ms;
+}
+
+.landing-3d .insights-chart-bar:nth-child(2) {
+  animation-delay: 240ms;
+}
+
+.landing-3d .insights-chart-bar:nth-child(3) {
+  animation-delay: 300ms;
+}
+
+.landing-3d .insights-chart-bar:nth-child(4) {
+  animation-delay: 360ms;
+}
+
+.landing-3d .insights-chart-bar:nth-child(5) {
+  animation-delay: 420ms;
+}
+
+.landing-3d .insights-chart-bar:nth-child(6) {
+  animation-delay: 480ms;
+}
+
+.landing-3d .insights-chart-bar:nth-child(7) {
+  animation-delay: 540ms;
+}
+
+.landing-3d .insights-chart-bar:nth-child(8) {
+  animation-delay: 600ms;
+}
+
+@keyframes landing-reveal-down {
+  from {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes landing-reveal-left {
+  from {
+    opacity: 0;
+    transform: translate3d(-28px, 16px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes landing-reveal-right {
+  from {
+    opacity: 0;
+    transform: translate3d(30px, 18px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes landing-card-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(22px) scale(0.975);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes landing-float-top {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-0.4deg);
+  }
+
+  50% {
+    transform: translateY(-10px) rotate(0.35deg);
+  }
+}
+
+@keyframes landing-chart-grow {
+  from {
+    opacity: 0;
+    transform: scaleY(0.15);
+  }
+
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+@keyframes landing-ambient-left {
+  from {
+    transform: translate3d(0, 0, 0) scale(0.95);
+  }
+
+  to {
+    transform: translate3d(90px, 70px, 0) scale(1.14);
+  }
+}
+
+@keyframes landing-ambient-right {
+  from {
+    transform: translate3d(0, 0, 0) scale(0.92);
+  }
+
+  to {
+    transform: translate3d(-70px, 105px, 0) scale(1.15);
+  }
+}
+
+@media (max-width: 900px) {
+  .landing-3d .hero-board-wrapper {
+    transform: perspective(1200px) rotateY(-1.5deg) rotateX(1deg);
+  }
+
+  .landing-3d .hero-board-wrapper:hover {
+    transform: perspective(1200px) translateY(-4px) rotateY(-0.5deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-3d *,
+  .landing-3d *::before,
+  .landing-3d *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .landing-3d .hero-board-wrapper,
+  .landing-3d .hero-board-wrapper:hover,
+  .landing-3d .feature-card:hover,
+  .landing-3d .workflow-step-card:hover,
+  .landing-3d .landing-insights-preview:hover,
+  .landing-3d .stat-card:hover {
+    transform: none;
+  }
+}
+
+/* Landing page scroll reveal */
+
+.landing-3d .scroll-reveal {
+  opacity: 0;
+  filter: blur(10px);
+  clip-path: inset(0 0 24% 0 round 18px);
+  translate: 0 30px;
+  will-change: opacity, filter, clip-path, translate;
+  transition:
+          opacity 650ms cubic-bezier(0.16, 1, 0.3, 1),
+          filter 650ms cubic-bezier(0.16, 1, 0.3, 1),
+          clip-path 760ms cubic-bezier(0.16, 1, 0.3, 1),
+          translate 760ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--scroll-reveal-delay, 0ms);
+  animation: none !important;
+}
+
+.landing-3d .scroll-reveal.is-visible {
+  opacity: 1;
+  filter: blur(0);
+  clip-path: inset(0 0 0 0 round 18px);
+  translate: 0 0;
+}
+
+.landing-3d .landing-insights-preview.scroll-reveal
+.insights-chart-bar {
+  animation-play-state: paused;
+}
+
+.landing-3d .landing-insights-preview.scroll-reveal.is-visible
+.insights-chart-bar {
+  animation-play-state: running;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-3d .scroll-reveal,
+  .landing-3d .scroll-reveal.is-visible {
+    opacity: 1;
+    filter: none;
+    clip-path: none;
+    translate: 0 0;
+    transition: none;
+  }
+}
 
 
+
+/* Full-width clean glass navigation */
+
+.landing-3d .navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+
+  width: 100vw;
+  max-width: none;
+  margin-right: calc(50% - 50vw);
+  margin-left: calc(50% - 50vw);
+
+  border: 0;
+  border-bottom: 1px solid rgba(190, 218, 197, 0.12);
+
+  background: rgba(7, 14, 9, 0.72);
+  background-image: none;
+
+  backdrop-filter: blur(18px) saturate(135%);
+  -webkit-backdrop-filter: blur(18px) saturate(135%);
+
+  box-shadow: 0 9px 24px rgba(0, 0, 0, 0.13);
+}
+
+/* Full-width transparent glass navbar with aligned inner content */
+
+.landing-3d .navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+
+  display: block;
+
+  width: 100vw;
+  max-width: none;
+  margin-right: calc(50% - 50vw);
+  margin-left: calc(50% - 50vw);
+
+  padding: 0;
+
+  border: 0;
+  border-bottom: 1px solid rgba(190, 218, 197, 0.1);
+
+  background: transparent !important;
+  background-image: none !important;
+
+  backdrop-filter: blur(18px) saturate(135%);
+  -webkit-backdrop-filter: blur(18px) saturate(135%);
+
+  box-shadow: none;
+}
+
+.landing-3d .navbar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+
+  width: min(1180px, calc(100% - 40px));
+  min-height: 76px;
+  margin: 0 auto;
+}
+
+@media (max-width: 760px) {
+  .landing-3d .navbar-inner {
+    width: min(100% - 32px, 1180px);
+    min-height: 68px;
+    gap: 14px;
+  }
+}
 
 

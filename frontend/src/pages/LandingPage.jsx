@@ -1,56 +1,228 @@
+import { useEffect,useMemo, useState } from "react";
 import { Link } from "react-router";
+import { Chess } from "chess.js";
+import { Chessboard } from "react-chessboard";
 
-const boardSquares = Array.from({ length: 64 }, (_, index) => {
-    const row = Math.floor(index / 8);
-    const col = index % 8;
-    const isLight = (row + col) % 2 === 0;
+const HERO_PGN = `[Event "ChessVision Live Demo"]
+[Site "ChessVision"]
+[Date "2026.07.04"]
+[Round "1"]
+[White "ChessVision"]
+[Black "Stockfish"]
+[Result "*"]
 
-    return {
-        id: index,
-        isLight,
-        piece:
-            index === 1
-                ? "♞"
-                : index === 3
-                    ? "♛"
-                    : index === 6
-                        ? "♚"
-                        : index === 12
-                            ? "♙"
-                            : index === 28
-                                ? "♘"
-                                : index === 36
-                                    ? "♙"
-                                    : "",
-    };
-});
+1. e4 c5
+2. Nf3 Nc6
+3. d4 cxd4
+4. Nxd4 Nf6
+5. Nc3 d6
+6. Be3 e5
+7. Nb3 Be7
+8. f3 O-O
+9. Qd2 Be6
+10. O-O-O a5 *`;
+
+const HERO_ANALYSIS_STEPS = [
+    {
+        evaluation: "+0.18",
+        verdict: "Position is balanced",
+        bestMove: "1. e4",
+        detail: "A principled central move.",
+    },
+    {
+        evaluation: "+0.24",
+        verdict: "White gains space",
+        bestMove: "3. d4!",
+        detail: "Challenge Black's center immediately.",
+    },
+    {
+        evaluation: "+0.13",
+        verdict: "Dynamic equality",
+        bestMove: "5. Nc3",
+        detail: "Natural development keeps every option open.",
+    },
+    {
+        evaluation: "+0.36",
+        verdict: "White keeps initiative",
+        bestMove: "7. Nb3",
+        detail: "The knight avoids exchanges and keeps pressure.",
+    },
+    {
+        evaluation: "+0.42",
+        verdict: "White is slightly better",
+        bestMove: "9. Qd2",
+        detail: "Connect the pieces and prepare long castling.",
+    },
+    {
+        evaluation: "+0.31",
+        verdict: "Sharp Sicilian position",
+        bestMove: "10. O-O-O",
+        detail: "Both sides are ready for a kingside race.",
+    },
+];
+
+function getHeroInsight(currentPly) {
+    const stepIndex = Math.min(
+        Math.floor(currentPly / 4),
+        HERO_ANALYSIS_STEPS.length - 1,
+    );
+
+    return HERO_ANALYSIS_STEPS[stepIndex];
+}
+
+
 
 function LandingPage() {
+    const heroMoves = useMemo(() => {
+        const game = new Chess();
+
+        game.loadPgn(HERO_PGN);
+
+        return game.history({ verbose: true });
+    }, []);
+
+    const [currentHeroPly, setCurrentHeroPly] = useState(0);
+
+    const currentHeroMove =
+        currentHeroPly > 0
+            ? heroMoves[currentHeroPly - 1]
+            : null;
+
+    const heroBoardPosition =
+        currentHeroMove?.after ||
+        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+    const heroInsight = getHeroInsight(currentHeroPly);
+
+    const heroMoveLabel = currentHeroMove
+        ? `${Math.ceil(currentHeroPly / 2)}${
+            currentHeroMove.color === "w" ? "." : "..."
+        } ${currentHeroMove.san}`
+        : "Starting position";
+
+    const heroSquareStyles = currentHeroMove
+        ? {
+            [currentHeroMove.from]: {
+                background:
+                    "radial-gradient(circle, rgba(250, 204, 21, 0.56) 0%, rgba(250, 204, 21, 0.16) 65%, transparent 67%)",
+            },
+
+            [currentHeroMove.to]: {
+                background:
+                    "radial-gradient(circle, rgba(74, 222, 128, 0.62) 0%, rgba(74, 222, 128, 0.18) 65%, transparent 67%)",
+            },
+        }
+        : {};
+
+    const heroBoardOptions = {
+        id: "chessvision-landing-board",
+        position: heroBoardPosition,
+        allowDragging: false,
+        showNotation: true,
+        showAnimations: true,
+        animationDurationInMs: 260,
+        squareStyles: heroSquareStyles,
+        darkSquareStyle: {
+            backgroundColor: "#3d6f4e",
+        },
+        lightSquareStyle: {
+            backgroundColor: "#d9e7da",
+        },
+    };
+
+    function goToPreviousHeroMove() {
+        setCurrentHeroPly((current) => Math.max(0, current - 1));
+    }
+
+    function goToNextHeroMove() {
+        setCurrentHeroPly((current) =>
+            Math.min(heroMoves.length, current + 1),
+        );
+    }
+
+    useEffect(() => {
+        const revealTargets = Array.from(
+            document.querySelectorAll(
+                [
+                    ".landing-3d .stats-section .stat-card",
+                    ".landing-3d .features-section .section-heading",
+                    ".landing-3d .feature-card",
+                    ".landing-3d .how-it-works-section .section-heading",
+                    ".landing-3d .workflow-step-card",
+                    ".landing-3d .workflow-cta",
+                    ".landing-3d .landing-insights-copy",
+                    ".landing-3d .landing-insights-preview",
+                ].join(", "),
+            ),
+        );
+
+        revealTargets.forEach((element, index) => {
+            element.classList.add("scroll-reveal");
+            element.style.setProperty(
+                "--scroll-reveal-delay",
+                `${(index % 4) * 110}ms`,
+            );
+        });
+
+        if (!("IntersectionObserver" in window)) {
+            revealTargets.forEach((element) => {
+                element.classList.add("is-visible");
+            });
+
+            return undefined;
+        }
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (!entry.isIntersecting) {
+                        return;
+                    }
+
+                    entry.target.classList.add("is-visible");
+                    observer.unobserve(entry.target);
+                });
+            },
+            {
+                threshold: 0.16,
+                rootMargin: "0px 0px -8% 0px",
+            },
+        );
+
+        revealTargets.forEach((element) => {
+            observer.observe(element);
+        });
+
+        return () => observer.disconnect();
+    }, []);
+
+
     return (
-        <div className="app">
+        <div className="app landing-3d">
             <header className="navbar">
-                <a className="logo" href="#home">
-                    <span className="logo-mark">♞</span>
-                    Chess<span>Vision</span>
-                </a>
+                <div className="navbar-inner">
+                    <a className="logo" href="#home">
+                        <span className="logo-mark">♞</span>
+                        Chess<span>Vision</span>
+                    </a>
 
-                <nav className="nav-links">
-                    <a href="#features">Features</a>
-                    <a href="#how-it-works">How it works</a>
-                    <a href="#insights">Insights</a>
-                </nav>
+                    <nav className="nav-links">
+                        <a href="#features">Features</a>
+                        <a href="#how-it-works">How it works</a>
+                        <a href="#insights">Insights</a>
+                    </nav>
 
-                <div className="nav-actions">
-                    <Link className="login-button" to="/login">
-                        Log in
-                    </Link>
+                    <div className="nav-actions">
+                        <Link className="login-button" to="/login">
+                            Log in
+                        </Link>
 
-                    <Link className="primary-button small-button" to="/register">
-                        Get started
-                    </Link>
+                        <Link className="primary-button small-button" to="/register">
+                            Get started
+                        </Link>
+                    </div>
                 </div>
             </header>
-
             <main id="home">
                 <section className="hero-section">
                     <div className="hero-content">
@@ -99,48 +271,59 @@ function LandingPage() {
 
                         <div className="analysis-card floating-card top-card">
                             <p>Engine evaluation</p>
-                            <strong>+1.84</strong>
-                            <span>White is better</span>
+                            <strong>{heroInsight.evaluation}</strong>
+                            <span>{heroInsight.verdict}</span>
                         </div>
 
-                        <div className="board-wrapper">
+                        <div className="board-wrapper hero-board-wrapper">
                             <div className="board-header">
-                                <span>Analysis board</span>
-                                <span className="live-label">LIVE</span>
+                                <span>Live analysis board</span>
+
+                                <span className="live-label">
+                <i/>
+                LIVE DEMO
+            </span>
                             </div>
 
-                            <div className="chess-board">
-                                {boardSquares.map((square) => (
-                                    <div
-                                        key={square.id}
-                                        className={`square ${square.isLight ? "light" : "dark"}`}
-                                    >
-                                        {square.piece}
-                                    </div>
-                                ))}
+                            <div className="hero-live-board">
+                                <Chessboard options={heroBoardOptions}/>
                             </div>
 
-                            <div className="board-footer">
-                                <div>
-                                    <p>Best move</p>
-                                    <strong>Nf5</strong>
-                                </div>
-
-                                <button className="play-button" aria-label="Play moves">
-                                    ▶
+                            <div className="hero-board-controls">
+                                <button
+                                    className="hero-board-nav-button"
+                                    type="button"
+                                    onClick={goToPreviousHeroMove}
+                                    disabled={currentHeroPly === 0}
+                                    aria-label="Previous move"
+                                >
+                                    ←
                                 </button>
 
-                                <div className="move-info">
-                                    <p>Move</p>
-                                    <strong>18 / 46</strong>
+                                <div className="hero-move-state">
+                                    <span>{heroMoveLabel}</span>
+
+                                    <strong>
+                                        Move {currentHeroPly} / {heroMoves.length}
+                                    </strong>
                                 </div>
+
+                                <button
+                                    className="hero-board-nav-button"
+                                    type="button"
+                                    onClick={goToNextHeroMove}
+                                    disabled={currentHeroPly === heroMoves.length}
+                                    aria-label="Next move"
+                                >
+                                    →
+                                </button>
                             </div>
                         </div>
 
                         <div className="analysis-card floating-card bottom-card">
-                            <p>Critical moment</p>
-                            <strong className="danger-text">23. Qd2</strong>
-                            <span>Missed winning move</span>
+                            <p>Stockfish suggestion</p>
+                            <strong>{heroInsight.bestMove}</strong>
+                            <span>{heroInsight.detail}</span>
                         </div>
                     </div>
                 </section>
@@ -403,6 +586,9 @@ function LandingPage() {
             </main>
         </div>
     );
+
+
 }
+
 
 export default LandingPage;
