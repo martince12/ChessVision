@@ -130,7 +130,7 @@ function AppShell({ children }) {
                     }
                     to="/dashboard"
                 >
-                    <span>▦</span>
+                    <span className="mobile-main-nav-icon">▦</span>
                     Home
                 </NavLink>
 
@@ -140,7 +140,7 @@ function AppShell({ children }) {
                     }
                     to="/analyze"
                 >
-                    <span>⌕</span>
+                    <span className="mobile-main-nav-icon">⌕</span>
                     Analyze
                 </NavLink>
 
@@ -150,7 +150,7 @@ function AppShell({ children }) {
                     }
                     to="/games"
                 >
-                    <span>♟</span>
+                    <span className="mobile-main-nav-icon">♟</span>
                     Games
                 </NavLink>
 
