@@ -44,23 +44,9 @@ function App() {
                 }
             />
 
-            <Route
-                path="/analyze"
-                element={
-                    <ProtectedRoute>
-                        <AnalyzeGamePage />
-                    </ProtectedRoute>
-                }
-            />
+            <Route path="/analyze" element={<AnalyzeGamePage />} />
 
-            <Route
-                path="/review"
-                element={
-                    <ProtectedRoute>
-                        <ReviewGamePage />
-                    </ProtectedRoute>
-                }
-            />
+            <Route path="/review" element={<ReviewGamePage />} />
 
             <Route
                 path="/review/:gameId"

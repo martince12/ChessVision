@@ -82,7 +82,7 @@ function LoginPage() {
                 </label>
 
                 <label className="remember-row">
-                    <input type="checkbox" defaultChecked />
+                    <input type="checkbox" defaultChecked/>
                     <span>Keep me signed in on this device</span>
                 </label>
 
@@ -100,7 +100,7 @@ function LoginPage() {
                 >
                     {isSubmitting ? (
                         <>
-                            <span className="button-spinner" />
+                            <span className="button-spinner"/>
                             Logging in...
                         </>
                     ) : (
@@ -113,9 +113,9 @@ function LoginPage() {
             </form>
 
             <div className="auth-divider">
-                <span />
+                <span/>
                 <p>or continue with</p>
-                <span />
+                <span/>
             </div>
 
             <button
@@ -130,6 +130,10 @@ function LoginPage() {
 
             <p className="auth-switch-text">
                 New to ChessVision? <Link to="/register">Create an account</Link>
+            </p>
+            <p className="auth-guest-link">
+                Prefer to try it first?{" "}
+                <Link to="/analyze">Analyze a game as a guest →</Link>
             </p>
         </AuthLayout>
     );

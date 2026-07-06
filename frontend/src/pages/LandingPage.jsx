@@ -583,6 +583,59 @@ function LandingPage() {
                     </div>
                 </section>
 
+                <footer className="landing-footer">
+                    <div className="landing-footer-inner">
+                        <div className="landing-footer-brand">
+                            <Link className="landing-footer-logo" to="/">
+                                <span className="logo-mark">♞</span>
+                                Chess<span>Vision</span>
+                            </Link>
+
+                            <p>
+                                Turn every chess game into a clearer lesson, stronger decisions,
+                                and measurable improvement.
+                            </p>
+
+                            <span className="landing-footer-status">
+                <i/>
+                Analysis platform for improving players
+            </span>
+                        </div>
+
+                        <div className="landing-footer-links">
+                            <div className="landing-footer-column">
+                                <span>Product</span>
+
+                                <a href="#features">Features</a>
+                                <a href="#how-it-works">How it works</a>
+                                <a href="#insights">Insights</a>
+                            </div>
+
+                            <div className="landing-footer-column">
+                                <span>Account</span>
+
+                                <Link to="/login">Log in</Link>
+                                <Link to="/register">Create account</Link>
+                                <Link to="/analyze">Analyze a game</Link>
+                            </div>
+
+                            <div className="landing-footer-column">
+                                <span>Built for improvement</span>
+
+                                <p>Review games</p>
+                                <p>Find critical moments</p>
+                                <p>Learn stronger continuations</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="landing-footer-bottom">
+                        <p>© {new Date().getFullYear()} ChessVision. Built for better chess.</p>
+
+                        <a href="#home">Back to top ↑</a>
+                    </div>
+                </footer>
+
             </main>
         </div>
     );

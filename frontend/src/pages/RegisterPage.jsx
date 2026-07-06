@@ -131,7 +131,7 @@ function RegisterPage() {
                 </label>
 
                 <label className="terms-row">
-                    <input type="checkbox" required />
+                    <input type="checkbox" required/>
                     <span>
                         I agree to the <a href="#terms">Terms of Service</a> and{" "}
                         <a href="#privacy">Privacy Policy</a>.
@@ -159,7 +159,7 @@ function RegisterPage() {
                 >
                     {isSubmitting ? (
                         <>
-                            <span className="button-spinner" />
+                            <span className="button-spinner"/>
                             Creating account...
                         </>
                     ) : (
@@ -173,6 +173,10 @@ function RegisterPage() {
 
             <p className="auth-switch-text">
                 Already have an account? <Link to="/login">Log in</Link>
+            </p>
+            <p className="auth-guest-link">
+                Prefer to try it first?{" "}
+                <Link to="/analyze">Analyze a game as a guest →</Link>
             </p>
         </AuthLayout>
     );

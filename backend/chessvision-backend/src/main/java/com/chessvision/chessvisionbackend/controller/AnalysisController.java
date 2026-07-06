@@ -32,6 +32,10 @@ public class AnalysisController {
         this.analysisPersistenceService = analysisPersistenceService;
     }
 
+    /*
+     * Logged-in user:
+     * Analyze the game and save it in the database.
+     */
     @PostMapping("/full-game")
     public ResponseEntity<FullGameAnalysisResponse> analyzeFullGame(
             @Valid @RequestBody FullGameAnalysisRequest request,
@@ -61,6 +65,27 @@ public class AnalysisController {
                 request,
                 response
         );
+
+        return ResponseEntity.ok(response);
+    }
+
+    /*
+     * Guest user:
+     * Analyze normally, but never save the game or its move analysis.
+     */
+    @PostMapping("/full-game/guest")
+    public ResponseEntity<FullGameAnalysisResponse> analyzeGuestFullGame(
+            @Valid @RequestBody FullGameAnalysisRequest request
+    ) {
+        FullGameAnalysisResponse response =
+                stockfishService.analyzeFullGame(
+                        request.pgn(),
+                        request.mode()
+                );
+
+        if (!response.available()) {
+            return ResponseEntity.badRequest().body(response);
+        }
 
         return ResponseEntity.ok(response);
     }

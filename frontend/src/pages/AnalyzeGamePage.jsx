@@ -1,8 +1,8 @@
 import { useRef, useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import AppShell from "../components/layout/AppShell";
-import { supabase } from "../lib/supabase";
-import { API_BASE_URL } from "../lib/api";
+import GuestAnalysisShell from "../components/layout/GuestAnalysisShell";
+import { useAuth } from "../context/AuthContext";
 
 const importMethods = [
     {
@@ -106,6 +106,8 @@ function AnalyzeGamePage() {
     const [pgnMetadata, setPgnMetadata] = useState(null);
     const [isValidatingPgn, setIsValidatingPgn] = useState(false);
     const fileInputRef = useRef(null);
+    const { user } = useAuth();
+    const PageShell = user ? AppShell : GuestAnalysisShell;
 
     const [importSource, setImportSource] =
         useState("Pasted PGN");
@@ -342,24 +344,27 @@ function AnalyzeGamePage() {
         try {
             const {
                 data: { session },
-                error: sessionError,
             } = await supabase.auth.getSession();
 
-            if (sessionError || !session?.access_token) {
-                setAnalysisError(
-                    "Your login session has expired. Please log in again.",
-                );
-                return;
+            const isGuestAnalysis = !session?.access_token;
+
+            const headers = {
+                "Content-Type": "application/json",
+            };
+
+            if (session?.access_token) {
+                headers.Authorization = `Bearer ${session.access_token}`;
             }
 
             const response = await fetch(
-                `${API_BASE_URL}/api/analysis/full-game`,
+                `${API_BASE_URL}${
+                    isGuestAnalysis
+                        ? "/api/analysis/full-game/guest"
+                        : "/api/analysis/full-game"
+                }`,
                 {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${session.access_token}`,
-                    },
+                    headers,
                     body: JSON.stringify({
                         pgn: pgnText.trim(),
                         mode: selectedMode,
@@ -401,6 +406,7 @@ function AnalyzeGamePage() {
                     analysisMode: selectedMode,
                     metadata: pgnMetadata,
                     fullGameAnalysis: data,
+                    isGuest: isGuestAnalysis,
                 },
             });
         } catch {
@@ -590,7 +596,7 @@ function AnalyzeGamePage() {
     }
 
     return (
-        <AppShell>
+        <PageShell>
             <section className="analyze-page">
                 <header className="analyze-header">
                     <div>
@@ -609,7 +615,25 @@ function AnalyzeGamePage() {
                         Backend connected
                     </div>
                 </header>
+                {!user && (
+                    <section className="guest-analysis-notice">
+                        <div>
+                            <span className="guest-analysis-notice-icon">♞</span>
 
+                            <div>
+                                <strong>You are analyzing as a guest.</strong>
+                                <p>
+                                    Your result is temporary and will not be saved to your
+                                    ChessVision history.
+                                </p>
+                            </div>
+                        </div>
+
+                        <Link to="/register">
+                            Create a free account <span>→</span>
+                        </Link>
+                    </section>
+                )}
                 <div className="analyze-layout">
                     <section className="import-panel">
                         <div className="panel-heading">
@@ -853,7 +877,7 @@ function AnalyzeGamePage() {
                     </section>
                 )}
             </section>
-        </AppShell>
+        </PageShell>
     );
 }
 

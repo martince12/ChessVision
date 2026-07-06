@@ -5,6 +5,8 @@ import { Chessboard } from "react-chessboard";
 import AppShell from "../components/layout/AppShell";
 import { supabase } from "../lib/supabase";
 import { API_BASE_URL } from "../lib/api";
+import GuestAnalysisShell from "../components/layout/GuestAnalysisShell";
+import { useAuth } from "../context/AuthContext";
 
 const DEMO_PGN = `[Event "ChessVision Demo Game"]
 [Site "ChessVision"]
@@ -500,6 +502,8 @@ function createArrowFromUci(uciMove, color = "rgba(74, 222, 128, 0.88)") {
 function ReviewGamePage() {
     const location = useLocation();
     const navigate = useNavigate();
+    const { user } = useAuth();
+    const PageShell = user ? AppShell : GuestAnalysisShell;
     const { gameId } = useParams();
 
     const [savedReview, setSavedReview] = useState(null);
@@ -897,20 +901,20 @@ function ReviewGamePage() {
 
     if (gameId && isSavedReviewLoading) {
         return (
-            <AppShell>
+            <PageShell>
                 <section className="review-page">
                     <div className="review-error-notice">
                         <span>⌛</span>
                         Loading saved analysis...
                     </div>
                 </section>
-            </AppShell>
+            </PageShell>
         );
     }
 
     if (gameId && savedReviewError) {
         return (
-            <AppShell>
+            <PageShell>
                 <section className="review-page">
                     <button
                         className="review-back-button"
@@ -925,12 +929,12 @@ function ReviewGamePage() {
                         {savedReviewError}
                     </div>
                 </section>
-            </AppShell>
+            </PageShell>
         );
     }
 
     return (
-        <AppShell>
+        <PageShell>
             <section className="review-page">
                 <header className="review-header">
                     <div>
@@ -1417,7 +1421,7 @@ function ReviewGamePage() {
                     </aside>
                 </section>
             </section>
-        </AppShell>
+        </PageShell>
     );
 }
 
