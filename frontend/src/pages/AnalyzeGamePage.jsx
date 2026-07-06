@@ -182,13 +182,15 @@ function AnalyzeGamePage() {
             setGameDetected(true);
 
             return true;
-        } catch {
-            setErrorMessage(
-                "Could not connect to the backend. Check that Spring Boot is running on port 8080.",
-            );
+        } catch (error) {
+        console.error("PGN validation failed:", error);
 
-            return false;
-        } finally {
+        setErrorMessage(
+            "Could not connect to the backend. Check that Spring Boot is running on port 8080.",
+        );
+
+        return false;
+    }finally {
             setIsValidatingPgn(false);
         }
     }
@@ -274,11 +276,13 @@ function AnalyzeGamePage() {
                 data.pgn,
                 data.source || fallbackSource,
             );
-        } catch {
+        } catch (error) {
+            console.error("External game import failed:", error);
+
             setErrorMessage(
                 "Could not connect to the backend. Check that Spring Boot is running.",
             );
-        } finally {
+        }  finally {
             setIsImportingExternalGame(false);
         }
     }
