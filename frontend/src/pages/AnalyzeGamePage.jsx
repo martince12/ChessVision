@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router";
 import AppShell from "../components/layout/AppShell";
 import GuestAnalysisShell from "../components/layout/GuestAnalysisShell";
 import { useAuth } from "../context/AuthContext";
+import { supabase } from "../lib/supabase";
+import { API_BASE_URL } from "../lib/api";
 
 const importMethods = [
     {

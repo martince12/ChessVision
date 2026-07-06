@@ -60,7 +60,7 @@ public class SecurityConfig {
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setExposedHeaders(List.of("Content-Type"));
         configuration.setMaxAge(3600L);
-        
+
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source =
