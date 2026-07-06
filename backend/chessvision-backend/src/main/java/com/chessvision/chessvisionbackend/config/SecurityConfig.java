@@ -41,10 +41,11 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOrigins(List.of(
+        configuration.setAllowedOriginPatterns(List.of(
                 "http://localhost:5173",
                 "http://127.0.0.1:5173",
-                "https://chess-vision-alpha.vercel.app"
+                "https://chess-vision-alpha.vercel.app",
+                "https://chess-vision-alpha-*.vercel.app"
         ));
 
         configuration.setAllowedMethods(List.of(
@@ -56,11 +57,10 @@ public class SecurityConfig {
                 "OPTIONS"
         ));
 
-        configuration.setAllowedHeaders(List.of(
-                "Content-Type",
-                "Authorization"
-        ));
-
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setExposedHeaders(List.of("Content-Type"));
+        configuration.setMaxAge(3600L);
+        
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source =
